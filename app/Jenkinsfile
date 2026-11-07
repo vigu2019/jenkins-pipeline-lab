@@ -1,0 +1,60 @@
+pipeline {
+
+    agent {
+        label 'linux-agent'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code'
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building application'
+
+                sh '''
+                    mkdir -p build
+                    cp app/index.html build/
+                    ls -l build/
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing application'
+
+                sh '''
+                    test -f build/index.html
+                    grep -q "Hello from Jenkins Pipeline" build/index.html
+
+                    echo "Application test successful"
+                '''
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh '''
+                    tar -czf application.tar.gz build/
+                    ls -lh application.tar.gz
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI Pipeline completed successfully'
+        }
+
+        failure {
+            echo 'CI Pipeline failed'
+        }
+    }
+}
